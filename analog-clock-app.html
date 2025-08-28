@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Digital-Clock App</title>
+  <style>
+    @font-face{font-family:'JetBrains Mono';src:url('/FONTS/JetBrains.woff2')format('woff2');font-style:normal;}
+    :root {
+      --dark:#1b1b1b;
+      --light:#D9D7DD;}
+
+    body {
+      -webkit-user-select: none !important;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      background: var(--dark); /* Başlangıç koyu */
+      font-family: "JetBrains Mono";
+      position: relative;
+      transition: background 0.5s ease;}
+
+    input[type="color"] {
+    width: 2.5rem;
+    height: 2.5rem;
+    position: fixed;
+    bottom: 32px;
+    left: unset;
+    right: 15px;
+    border: none;
+    cursor: pointer;}
+
+    .clock-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;}
+
+    .clock {
+      border-radius: 100%;
+      background: #2c2c2c;
+      border: 5px solid #2c2c2c;
+      box-shadow: inset 2px 3px 8px 0 rgba(255, 255, 255, 0.05);
+      width: 21.875rem;
+      height: 21.875rem;
+      position: relative;
+      cursor: pointer;
+      transition: background 0.5s ease, border 0.5s ease;}
+
+    .wrap {
+      overflow: hidden;
+      position: relative;
+      width: 100%;
+      height: 100%;
+      border-radius: 100%;}
+
+    .minute,
+    .hour {
+      position: absolute;
+      margin: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FF6700;
+      transform-origin: bottom center;
+      box-shadow: 0 0 10px #FF6700;
+      z-index: 1;
+      transition: background 0.5s ease, box-shadow 0.5s ease;}
+
+    .hour {
+      height: 6.25rem;
+      width: .375rem;
+      top: -27%;
+      transform: rotate(0deg);}
+
+    .minute {
+      height: 8.125rem;
+      width: .25rem;
+      top: -38%;
+      transform: rotate(0deg);}
+
+    .second {
+      position: absolute;
+      margin: auto;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: #FF4B3E;
+      height: 5.625rem;
+      width: .125rem;
+      top: -26%;
+      border-radius: 4px;
+      transform-origin: bottom center;
+      transform: rotate(0deg);
+      z-index: 1;}
+
+    .dot {
+      position: absolute;
+      width: .75rem;
+      height: .75rem;
+      background: white;
+      border: 2px solid #FF6700;
+      border-radius: 100%;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      margin: auto;
+      z-index: 2;
+      transition: border 0.5s ease;}
+
+    .digital-clock {
+      margin-top: 0;
+      background: #2c2c2c;
+      color: white;
+      padding: .625rem 1.25rem;
+      border-radius: 10px;
+      font-size: 24px;
+      opacity: 0;
+      max-height: 0;
+      overflow: hidden;
+      -webkit-user-select: none !important;
+      transition: all 0.4s ease, background 0.5s ease, color 0.5s ease;}
+
+    .digital-clock.show {
+      opacity: 1;
+      max-height: 6.25rem;
+      margin-top: 1.25rem;}
+
+    .theme-toggle {
+      width: 2.5rem;
+      height: 2.5rem;
+      position: fixed;
+      bottom: 32px;
+      left: 15px;
+      right:unset;
+      background: var(--light);
+      color: var(--dark);
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      justify-content: center;
+      align-items: center;
+      transition: background 0.3s ease, color 0.3s ease;
+      z-index: 10;}
+    
+    .light-mode .clock {
+      background: #ffffff;
+      border: 5px solid white;
+      box-shadow: inset 2px 3px 8px 0 rgba(0, 0, 0, 0.1);}
+
+    .light-mode .hour,
+    .light-mode .minute {
+      background: black;
+      box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.4);}
+
+    .light-mode .second {
+      background: #FF4B3E;}
+
+    .light-mode .dot {
+      border: 2px solid #1b1b1b;}
+
+    .light-mode .digital-clock {
+      background: #ffffff;
+      color: black;
+      box-shadow: 0 0 8px rgba(0,0,0,0.2);}
+  </style>
+</head>
+<body>
+<div class="clock-container">
+  <div class="clock" id="clock">
+    <div class="wrap">
+      <span class="hour"></span>
+      <span class="minute"></span>
+      <span class="second"></span>
+      <span class="dot"></span>
+    </div>
+  </div>
+  <div class="digital-clock" id="digitalClock">00:00:00</div>
+</div>
+
+<button class="theme-toggle" id="themeToggle">◐</button>
+<input type="color" id="colorPicker" value="#ffffff">
+<script>
+  const body = document.body;
+  const clockEl = document.getElementById('clock');
+  const digitalClock = document.getElementById('digitalClock');
+
+  const themeToggle = document.getElementById('themeToggle');
+  let clicked = false;
+  let lightMode = false;
+
+  function updateClocks() {
+    const date = new Date();
+    const hours = ((date.getHours() + 11) % 12 + 1);
+    const minutes = date.getMinutes();
+    const seconds = date.getSeconds();
+
+    const hourDeg = hours * 30;
+    const minuteDeg = minutes * 6;
+    const secondDeg = seconds * 6;
+
+    document.querySelector('.hour').style.transform = `rotate(${hourDeg}deg)`;
+    document.querySelector('.minute').style.transform = `rotate(${minuteDeg}deg)`;
+    document.querySelector('.second').style.transform = `rotate(${secondDeg}deg)`;
+
+    const fullHours = date.getHours().toString().padStart(2, '0');
+    const fullMinutes = date.getMinutes().toString().padStart(2, '0');
+    const fullSeconds = date.getSeconds().toString().padStart(2, '0');
+    digitalClock.textContent = `${fullHours}:${fullMinutes}:${fullSeconds}`;
+  }
+
+  setInterval(updateClocks, 1000);
+  updateClocks();
+
+  // Hover ve tıklama açma/kapama
+  clockEl.addEventListener('mouseenter', () => {
+    digitalClock.classList.add('show');
+  });
+
+  clockEl.addEventListener('mouseleave', () => {
+    if (!clicked) {
+      digitalClock.classList.remove('show');
+    }
+  });
+
+  clockEl.addEventListener('click', (e) => {
+    clicked = !clicked;
+    if (clicked) {
+      digitalClock.classList.add('show');
+    } else {
+      digitalClock.classList.remove('show');
+    }
+    e.stopPropagation();
+  });
+
+  document.addEventListener('click', () => {
+    if (clicked) {
+      clicked = false;
+      digitalClock.classList.remove('show');
+    }
+  });
+
+  // Tema değiştirme
+  themeToggle.addEventListener('click', () => {
+    document.body.classList.toggle('light-mode');
+    /*lightMode = !lightMode;*/
+    const darkColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--dark').trim();
+const lightColor = getComputedStyle(document.documentElement)
+                    .getPropertyValue('--light').trim();
+
+// Toggle işlemi
+document.documentElement.style.setProperty('--dark', lightColor);
+document.documentElement.style.setProperty('--light', darkColor);
+  });
+
+const colorInput = document.getElementById("colorPicker");
+
+  colorInput.addEventListener("input", function() {
+    if (body.className === "") {
+        // Light mode aktif ediliyor
+        document.documentElement.style.setProperty("--dark", this.value);
+
+      } else {
+        // Light mode kapatılıyor (dark mode'a dön)
+        document.documentElement.style.setProperty("--dark", this.value);
+      }
+  });
+</script></body></html>
