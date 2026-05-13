@@ -1,2 +1,2 @@
 # Clock-App  
-![Image](https://github.com/user-attachments/assets/5ec76e62-6679-4cc8-bb63-51a605f62673)  
+![Analog-Clock-App Demo GIF](https://github.com/FURK4NGG/Analog-Clock-App/blob/main/{}/analog-clock-app.gif)  
